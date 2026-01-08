@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-TigSumm: An Intelligent Cross-Lingual Framework for Sentiment-Aware Text Summarization in Low-Resource Tigrigna
+TigSumm: An Intelligent Cross-Lingual Framework for Sentiment-Aware Abstractive Text Summarization
 
-Author: Hagos et al. (2026)
+Author: Hagos et al. (2025)
 """
 
 import argparse
@@ -26,19 +26,19 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Train TigSumm Framework")
 
     parser.add_argument(
-        "--model_name_or_path",
+        "--TigSumm",
         type=str,
         required=True,
         help="Pretrained model (e.g., google/mt5-base, facebook/mbart-large-50, meta-llama/Llama-2-7b-hf)",
     )
     parser.add_argument(
-        "--dataset_path",
+        "--TigSumm/Raw_Data",
         type=str,
         required=True,
         help="Path containing TigSumm_Data.csv",
     )
     parser.add_argument(
-        "--output_dir",
+        "--TigSumm/output",
         type=str,
         default="checkpoints/tigsumm",
     )
@@ -70,11 +70,11 @@ def main():
     args = parse_args()
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    print(f"Loading dataset from {args.dataset_path}/TigSumm_Data.csv")
+    print(f"Loading dataset from {args.TigSumm/Raw_Data}/TigSumm_Data.csv")
 
     dataset = load_dataset(
         "csv",
-        data_files=f"{args.dataset_path}/TigSumm_Data.csv"
+        data_files=f"{args.TigSumm/Raw_Data}/TigSumm_Data.csv"
     )
 
     # Handle predefined or automatic split
@@ -87,11 +87,11 @@ def main():
         eval_dataset = dataset["test"]
 
     # Determine model type
-    model_name = args.model_name_or_path.lower()
+    model_name = args.TigSumm.lower()
     is_seq2seq = any(k in model_name for k in ["t5", "bart"])
 
     tokenizer = AutoTokenizer.from_pretrained(
-        args.model_name_or_path,
+        args.TigSumm,
         use_fast=True
     )
 
@@ -133,9 +133,9 @@ def main():
 
     # Load model
     if is_seq2seq:
-        model = AutoModelForSeq2SeqLM.from_pretrained(args.model_name_or_path)
+        model = AutoModelForSeq2SeqLM.from_pretrained(args.TigSumm)
     else:
-        model = AutoModelForCausalLM.from_pretrained(args.model_name_or_path)
+        model = AutoModelForCausalLM.from_pretrained(args.TigSumm)
 
     # Apply LoRA
     if args.use_lora:
@@ -154,7 +154,7 @@ def main():
     model.to(device)
 
     training_args = TrainingArguments(
-        output_dir=args.output_dir,
+        TigSumm/output=args.TigSumm/output,
         evaluation_strategy="epoch",
         save_strategy="epoch",
         learning_rate=args.learning_rate,
@@ -162,7 +162,7 @@ def main():
         per_device_eval_batch_size=args.batch_size,
         num_train_epochs=args.num_train_epochs,
         weight_decay=0.01,
-        logging_dir=f"{args.output_dir}/logs",
+        logging_dir=f"{args.TigSumm/output}/logs",
         logging_steps=50,
         predict_with_generate=True,
         fp16=torch.cuda.is_available(),
@@ -187,10 +187,10 @@ def main():
 
     trainer.train()
 
-    trainer.save_model(args.output_dir)
-    tokenizer.save_pretrained(args.output_dir)
+    trainer.save_model(args.TigSumm/output)
+    tokenizer.save_pretrained(args.TigSumm/output)
 
-    print(f"Training complete. Model saved to {args.output_dir}")
+    print(f"Training complete. Model saved to {args.TigSumm/output}")
 
 
 if __name__ == "__main__":
